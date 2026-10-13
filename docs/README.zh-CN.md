@@ -38,4 +38,4 @@ GPT-6.1 Sol 默认 500K 长上下文阈值是项目要求保留的覆盖配置�
 
 仅安装 HUD 不会自动启用原生补丁。默认 App 通知不含工具参数增量；若要测量工具生成速度，需要构建精确匹配的可选客户端。目前只支持 `0.162.0-alpha.17.2`，详见[原生补丁说明](native-observer.md)。App 更新后哈希保护回退原客户端，需要重新验证版本。
 
-[完整架构说明](architecture.md) · [本机隐私和文件](../PRIVACY.md) · [卸载步骤](../README.md#uninstall)
+[完整架构说明](architecture.md) · [本机隐私和文件](../PRIVACY.md) · [卸载步骤](../README.md#卸载)
