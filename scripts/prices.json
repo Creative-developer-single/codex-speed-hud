@@ -1,0 +1,1874 @@
+{
+  "source": "https://developers.openai.com/api/docs/pricing",
+  "updatedAt": "2026-10-12",
+  "models": [
+    {
+      "id": "gpt-6-astra",
+      "name": "GPT-6 Astra",
+      "short": [
+        10,
+        1,
+        12.5,
+        50
+      ],
+      "long": [
+        20,
+        2,
+        25,
+        75
+      ],
+      "contextThreshold": 272000,
+      "ultrafast": {
+        "short": [
+          60,
+          6,
+          75,
+          300
+        ],
+        "long": [
+          120,
+          12,
+          150,
+          450
+        ]
+      },
+      "batch": {
+        "short": [
+          5,
+          0.5,
+          6.25,
+          25
+        ],
+        "long": [
+          10,
+          1,
+          12.5,
+          37.5
+        ]
+      },
+      "flex": {
+        "short": [
+          5,
+          0.5,
+          6.25,
+          25
+        ],
+        "long": [
+          10,
+          1,
+          12.5,
+          37.5
+        ]
+      },
+      "fast": {
+        "short": [
+          20,
+          2,
+          25,
+          100
+        ],
+        "long": [
+          40,
+          4,
+          50,
+          150
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-6.1-sol",
+      "name": "GPT-6.1 Sol",
+      "short": [
+        2,
+        0.1,
+        2.5,
+        10
+      ],
+      "long": [
+        4,
+        0.2,
+        5,
+        15
+      ],
+      "contextThreshold": 272000,
+      "ultrafast": {
+        "short": [
+          12,
+          0.6,
+          15,
+          60
+        ],
+        "long": [
+          24,
+          1.2,
+          30,
+          90
+        ]
+      },
+      "batch": {
+        "short": [
+          1,
+          0.05,
+          1.25,
+          5
+        ],
+        "long": [
+          2,
+          0.1,
+          2.5,
+          7.5
+        ]
+      },
+      "flex": {
+        "short": [
+          1,
+          0.05,
+          1.25,
+          5
+        ],
+        "long": [
+          2,
+          0.1,
+          2.5,
+          7.5
+        ]
+      },
+      "fast": {
+        "short": [
+          4,
+          0.2,
+          5,
+          20
+        ],
+        "long": [
+          8,
+          0.4,
+          10,
+          30
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-6-luna",
+      "name": "GPT-6 Luna",
+      "short": [
+        0.1,
+        0.01,
+        0.125,
+        0.5
+      ],
+      "long": [
+        0.2,
+        0.02,
+        0.25,
+        0.75
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.05,
+          0.005,
+          0.0625,
+          0.25
+        ],
+        "long": [
+          0.1,
+          0.01,
+          0.125,
+          0.375
+        ]
+      },
+      "flex": {
+        "short": [
+          0.05,
+          0.005,
+          0.0625,
+          0.25
+        ],
+        "long": [
+          0.1,
+          0.01,
+          0.125,
+          0.375
+        ]
+      },
+      "fast": {
+        "short": [
+          0.2,
+          0.02,
+          0.25,
+          1
+        ],
+        "long": [
+          0.4,
+          0.04,
+          0.5,
+          1.5
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-6-sol",
+      "name": "GPT-6 Sol",
+      "short": [
+        2,
+        0.2,
+        2.5,
+        10
+      ],
+      "long": [
+        4,
+        0.4,
+        5,
+        15
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1,
+          0.1,
+          1.25,
+          5
+        ],
+        "long": [
+          2,
+          0.2,
+          2.5,
+          7.5
+        ]
+      },
+      "flex": {
+        "short": [
+          1,
+          0.1,
+          1.25,
+          5
+        ],
+        "long": [
+          2,
+          0.2,
+          2.5,
+          7.5
+        ]
+      },
+      "fast": {
+        "short": [
+          4,
+          0.4,
+          5,
+          20
+        ],
+        "long": [
+          8,
+          0.8,
+          10,
+          30
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "short": [
+        4,
+        0.4,
+        5,
+        20
+      ],
+      "long": [
+        8,
+        0.8,
+        10,
+        30
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          2,
+          0.2,
+          2.5,
+          10
+        ],
+        "long": [
+          4,
+          0.4,
+          5,
+          15
+        ]
+      },
+      "flex": {
+        "short": [
+          2,
+          0.2,
+          2.5,
+          10
+        ],
+        "long": [
+          4,
+          0.4,
+          5,
+          15
+        ]
+      },
+      "fast": {
+        "short": [
+          8,
+          0.8,
+          10,
+          40
+        ],
+        "long": [
+          16,
+          1.6,
+          20,
+          60
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "short": [
+        2,
+        0.2,
+        2.5,
+        12
+      ],
+      "long": [
+        4,
+        0.4,
+        5,
+        18
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1,
+          0.1,
+          1.25,
+          6
+        ],
+        "long": [
+          2,
+          0.2,
+          2.5,
+          9
+        ]
+      },
+      "flex": {
+        "short": [
+          1,
+          0.1,
+          1.25,
+          6
+        ],
+        "long": [
+          2,
+          0.2,
+          2.5,
+          9
+        ]
+      },
+      "fast": {
+        "short": [
+          4,
+          0.4,
+          5,
+          24
+        ],
+        "long": [
+          8,
+          0.8,
+          10,
+          36
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "short": [
+        0.2,
+        0.02,
+        0.25,
+        1.2
+      ],
+      "long": [
+        0.4,
+        0.04,
+        0.5,
+        1.8
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.1,
+          0.01,
+          0.125,
+          0.6
+        ],
+        "long": [
+          0.2,
+          0.02,
+          0.25,
+          0.9
+        ]
+      },
+      "flex": {
+        "short": [
+          0.1,
+          0.01,
+          0.125,
+          0.6
+        ],
+        "long": [
+          0.2,
+          0.02,
+          0.25,
+          0.9
+        ]
+      },
+      "fast": {
+        "short": [
+          0.4,
+          0.04,
+          0.5,
+          2.4
+        ],
+        "long": [
+          0.8,
+          0.08,
+          1,
+          3.6
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.5",
+      "name": "GPT-5.5",
+      "short": [
+        5,
+        0.5,
+        null,
+        30
+      ],
+      "long": [
+        10,
+        1,
+        null,
+        45
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          2.5,
+          0.25,
+          null,
+          15
+        ],
+        "long": [
+          5,
+          0.5,
+          null,
+          22.5
+        ]
+      },
+      "flex": {
+        "short": [
+          2.5,
+          0.25,
+          null,
+          15
+        ],
+        "long": [
+          5,
+          0.5,
+          null,
+          22.5
+        ]
+      },
+      "fast": {
+        "short": [
+          12.5,
+          1.25,
+          null,
+          75
+        ],
+        "long": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "fastMultiplier": 2.5
+    },
+    {
+      "id": "gpt-5.5-pro",
+      "name": "GPT-5.5 Pro",
+      "short": [
+        30,
+        null,
+        null,
+        180
+      ],
+      "long": [
+        60,
+        null,
+        null,
+        270
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          15,
+          null,
+          null,
+          90
+        ],
+        "long": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "flex": {
+        "short": [
+          15,
+          null,
+          null,
+          90
+        ],
+        "long": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-5.4",
+      "name": "GPT-5.4",
+      "short": [
+        2.5,
+        0.25,
+        null,
+        15
+      ],
+      "long": [
+        5,
+        0.5,
+        null,
+        22.5
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1.25,
+          0.13,
+          null,
+          7.5
+        ],
+        "long": [
+          2.5,
+          0.25,
+          null,
+          11.25
+        ]
+      },
+      "flex": {
+        "short": [
+          1.25,
+          0.13,
+          null,
+          7.5
+        ],
+        "long": [
+          2.5,
+          0.25,
+          null,
+          11.25
+        ]
+      },
+      "fast": {
+        "short": [
+          5,
+          0.5,
+          null,
+          30
+        ],
+        "long": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.4-mini",
+      "name": "GPT-5.4 Mini",
+      "short": [
+        0.75,
+        0.075,
+        null,
+        4.5
+      ],
+      "long": [
+        0.75,
+        0.075,
+        null,
+        4.5
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.375,
+          0.0375,
+          null,
+          2.25
+        ],
+        "long": [
+          0.375,
+          0.0375,
+          null,
+          2.25
+        ]
+      },
+      "flex": {
+        "short": [
+          0.375,
+          0.0375,
+          null,
+          2.25
+        ],
+        "long": [
+          0.375,
+          0.0375,
+          null,
+          2.25
+        ]
+      },
+      "fast": {
+        "short": [
+          1.5,
+          0.15,
+          null,
+          9
+        ],
+        "long": [
+          1.5,
+          0.15,
+          null,
+          9
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.4-nano",
+      "name": "GPT-5.4 Nano",
+      "short": [
+        0.2,
+        0.02,
+        null,
+        1.25
+      ],
+      "long": [
+        0.2,
+        0.02,
+        null,
+        1.25
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.1,
+          0.01,
+          null,
+          0.625
+        ],
+        "long": [
+          0.1,
+          0.01,
+          null,
+          0.625
+        ]
+      },
+      "flex": {
+        "short": [
+          0.1,
+          0.01,
+          null,
+          0.625
+        ],
+        "long": [
+          0.1,
+          0.01,
+          null,
+          0.625
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-5.4-pro",
+      "name": "GPT-5.4 Pro",
+      "short": [
+        30,
+        null,
+        null,
+        180
+      ],
+      "long": [
+        60,
+        null,
+        null,
+        270
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          15,
+          null,
+          null,
+          90
+        ],
+        "long": [
+          30,
+          null,
+          null,
+          135
+        ]
+      },
+      "flex": {
+        "short": [
+          15,
+          null,
+          null,
+          90
+        ],
+        "long": [
+          30,
+          null,
+          null,
+          135
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-5.2",
+      "name": "GPT-5.2",
+      "short": [
+        1.75,
+        0.175,
+        null,
+        14
+      ],
+      "long": [
+        1.75,
+        0.175,
+        null,
+        14
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.875,
+          0.0875,
+          null,
+          7
+        ],
+        "long": [
+          0.875,
+          0.0875,
+          null,
+          7
+        ]
+      },
+      "flex": {
+        "short": [
+          0.875,
+          0.0875,
+          null,
+          7
+        ],
+        "long": [
+          0.875,
+          0.0875,
+          null,
+          7
+        ]
+      },
+      "fast": {
+        "short": [
+          3.5,
+          0.35,
+          null,
+          28
+        ],
+        "long": [
+          3.5,
+          0.35,
+          null,
+          28
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5.2-pro",
+      "name": "GPT-5.2 Pro",
+      "short": [
+        21,
+        null,
+        null,
+        168
+      ],
+      "long": [
+        21,
+        null,
+        null,
+        168
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          10.5,
+          null,
+          null,
+          84
+        ],
+        "long": [
+          10.5,
+          null,
+          null,
+          84
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-5.1",
+      "name": "GPT-5.1",
+      "short": [
+        1.25,
+        0.125,
+        null,
+        10
+      ],
+      "long": [
+        1.25,
+        0.125,
+        null,
+        10
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ],
+        "long": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ]
+      },
+      "flex": {
+        "short": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ],
+        "long": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ]
+      },
+      "fast": {
+        "short": [
+          2.5,
+          0.25,
+          null,
+          20
+        ],
+        "long": [
+          2.5,
+          0.25,
+          null,
+          20
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5",
+      "name": "GPT-5",
+      "short": [
+        1.25,
+        0.125,
+        null,
+        10
+      ],
+      "long": [
+        1.25,
+        0.125,
+        null,
+        10
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ],
+        "long": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ]
+      },
+      "flex": {
+        "short": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ],
+        "long": [
+          0.625,
+          0.0625,
+          null,
+          5
+        ]
+      },
+      "fast": {
+        "short": [
+          2.5,
+          0.25,
+          null,
+          20
+        ],
+        "long": [
+          2.5,
+          0.25,
+          null,
+          20
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-5-mini",
+      "name": "GPT-5 Mini",
+      "short": [
+        0.25,
+        0.025,
+        null,
+        2
+      ],
+      "long": [
+        0.25,
+        0.025,
+        null,
+        2
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.125,
+          0.0125,
+          null,
+          1
+        ],
+        "long": [
+          0.125,
+          0.0125,
+          null,
+          1
+        ]
+      },
+      "flex": {
+        "short": [
+          0.125,
+          0.0125,
+          null,
+          1
+        ],
+        "long": [
+          0.125,
+          0.0125,
+          null,
+          1
+        ]
+      },
+      "fast": {
+        "short": [
+          0.45,
+          0.045,
+          null,
+          3.6
+        ],
+        "long": [
+          0.45,
+          0.045,
+          null,
+          3.6
+        ]
+      },
+      "fastMultiplier": 1.8
+    },
+    {
+      "id": "gpt-5-nano",
+      "name": "GPT-5 Nano",
+      "short": [
+        0.05,
+        0.005,
+        null,
+        0.4
+      ],
+      "long": [
+        0.05,
+        0.005,
+        null,
+        0.4
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.025,
+          0.0025,
+          null,
+          0.2
+        ],
+        "long": [
+          0.025,
+          0.0025,
+          null,
+          0.2
+        ]
+      },
+      "flex": {
+        "short": [
+          0.025,
+          0.0025,
+          null,
+          0.2
+        ],
+        "long": [
+          0.025,
+          0.0025,
+          null,
+          0.2
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-5-pro",
+      "name": "GPT-5 Pro",
+      "short": [
+        15,
+        null,
+        null,
+        120
+      ],
+      "long": [
+        15,
+        null,
+        null,
+        120
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          7.5,
+          null,
+          null,
+          60
+        ],
+        "long": [
+          7.5,
+          null,
+          null,
+          60
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-4.1",
+      "name": "GPT-4.1",
+      "short": [
+        2,
+        0.5,
+        null,
+        8
+      ],
+      "long": [
+        2,
+        0.5,
+        null,
+        8
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1,
+          null,
+          null,
+          4
+        ],
+        "long": [
+          1,
+          null,
+          null,
+          4
+        ]
+      },
+      "fast": {
+        "short": [
+          3.5,
+          0.875,
+          null,
+          14
+        ],
+        "long": [
+          3.5,
+          0.875,
+          null,
+          14
+        ]
+      },
+      "fastMultiplier": 1.75
+    },
+    {
+      "id": "gpt-4.1-mini",
+      "name": "GPT-4.1 Mini",
+      "short": [
+        0.4,
+        0.1,
+        null,
+        1.6
+      ],
+      "long": [
+        0.4,
+        0.1,
+        null,
+        1.6
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.2,
+          null,
+          null,
+          0.8
+        ],
+        "long": [
+          0.2,
+          null,
+          null,
+          0.8
+        ]
+      },
+      "fast": {
+        "short": [
+          0.7,
+          0.175,
+          null,
+          2.8
+        ],
+        "long": [
+          0.7,
+          0.175,
+          null,
+          2.8
+        ]
+      },
+      "fastMultiplier": 1.7499999999999998
+    },
+    {
+      "id": "gpt-4.1-nano",
+      "name": "GPT-4.1 Nano",
+      "short": [
+        0.1,
+        0.025,
+        null,
+        0.4
+      ],
+      "long": [
+        0.1,
+        0.025,
+        null,
+        0.4
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.05,
+          null,
+          null,
+          0.2
+        ],
+        "long": [
+          0.05,
+          null,
+          null,
+          0.2
+        ]
+      },
+      "fast": {
+        "short": [
+          0.2,
+          0.05,
+          null,
+          0.8
+        ],
+        "long": [
+          0.2,
+          0.05,
+          null,
+          0.8
+        ]
+      },
+      "fastMultiplier": 2
+    },
+    {
+      "id": "gpt-4o",
+      "name": "GPT-4o",
+      "short": [
+        2.5,
+        1.25,
+        null,
+        10
+      ],
+      "long": [
+        2.5,
+        1.25,
+        null,
+        10
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1.25,
+          null,
+          null,
+          5
+        ],
+        "long": [
+          1.25,
+          null,
+          null,
+          5
+        ]
+      },
+      "fast": {
+        "short": [
+          4.25,
+          2.125,
+          null,
+          17
+        ],
+        "long": [
+          4.25,
+          2.125,
+          null,
+          17
+        ]
+      },
+      "fastMultiplier": 1.7
+    },
+    {
+      "id": "gpt-4o-2024-05-13",
+      "name": "GPT-4o-2024-05-13",
+      "short": [
+        5,
+        null,
+        null,
+        15
+      ],
+      "long": [
+        5,
+        null,
+        null,
+        15
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          2.5,
+          null,
+          null,
+          7.5
+        ],
+        "long": [
+          2.5,
+          null,
+          null,
+          7.5
+        ]
+      },
+      "fast": {
+        "short": [
+          8.75,
+          null,
+          null,
+          26.25
+        ],
+        "long": [
+          8.75,
+          null,
+          null,
+          26.25
+        ]
+      },
+      "fastMultiplier": 1.75
+    },
+    {
+      "id": "gpt-4o-mini",
+      "name": "GPT-4o Mini",
+      "short": [
+        0.15,
+        0.075,
+        null,
+        0.6
+      ],
+      "long": [
+        0.15,
+        0.075,
+        null,
+        0.6
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.075,
+          null,
+          null,
+          0.3
+        ],
+        "long": [
+          0.075,
+          null,
+          null,
+          0.3
+        ]
+      },
+      "fast": {
+        "short": [
+          0.25,
+          0.125,
+          null,
+          1
+        ],
+        "long": [
+          0.25,
+          0.125,
+          null,
+          1
+        ]
+      },
+      "fastMultiplier": 1.6666666666666667
+    },
+    {
+      "id": "o1",
+      "name": "o1",
+      "short": [
+        15,
+        7.5,
+        null,
+        60
+      ],
+      "long": [
+        15,
+        7.5,
+        null,
+        60
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          7.5,
+          null,
+          null,
+          30
+        ],
+        "long": [
+          7.5,
+          null,
+          null,
+          30
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "o1-pro",
+      "name": "o1 Pro",
+      "short": [
+        150,
+        null,
+        null,
+        600
+      ],
+      "long": [
+        150,
+        null,
+        null,
+        600
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          75,
+          null,
+          null,
+          300
+        ],
+        "long": [
+          75,
+          null,
+          null,
+          300
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "o3-pro",
+      "name": "o3 Pro",
+      "short": [
+        20,
+        null,
+        null,
+        80
+      ],
+      "long": [
+        20,
+        null,
+        null,
+        80
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          10,
+          null,
+          null,
+          40
+        ],
+        "long": [
+          10,
+          null,
+          null,
+          40
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "o3",
+      "name": "o3",
+      "short": [
+        2,
+        0.5,
+        null,
+        8
+      ],
+      "long": [
+        2,
+        0.5,
+        null,
+        8
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1,
+          null,
+          null,
+          4
+        ],
+        "long": [
+          1,
+          null,
+          null,
+          4
+        ]
+      },
+      "flex": {
+        "short": [
+          1,
+          0.25,
+          null,
+          4
+        ],
+        "long": [
+          1,
+          0.25,
+          null,
+          4
+        ]
+      },
+      "fast": {
+        "short": [
+          3.5,
+          0.875,
+          null,
+          14
+        ],
+        "long": [
+          3.5,
+          0.875,
+          null,
+          14
+        ]
+      },
+      "fastMultiplier": 1.75
+    },
+    {
+      "id": "o4-mini",
+      "name": "o4 Mini",
+      "short": [
+        1.1,
+        0.275,
+        null,
+        4.4
+      ],
+      "long": [
+        1.1,
+        0.275,
+        null,
+        4.4
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.55,
+          null,
+          null,
+          2.2
+        ],
+        "long": [
+          0.55,
+          null,
+          null,
+          2.2
+        ]
+      },
+      "flex": {
+        "short": [
+          0.55,
+          0.138,
+          null,
+          2.2
+        ],
+        "long": [
+          0.55,
+          0.138,
+          null,
+          2.2
+        ]
+      },
+      "fast": {
+        "short": [
+          2,
+          0.5,
+          null,
+          8
+        ],
+        "long": [
+          2,
+          0.5,
+          null,
+          8
+        ]
+      },
+      "fastMultiplier": 1.8181818181818181
+    },
+    {
+      "id": "o3-mini",
+      "name": "o3 Mini",
+      "short": [
+        1.1,
+        0.55,
+        null,
+        4.4
+      ],
+      "long": [
+        1.1,
+        0.55,
+        null,
+        4.4
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.55,
+          null,
+          null,
+          2.2
+        ],
+        "long": [
+          0.55,
+          null,
+          null,
+          2.2
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-4-turbo-2024-04-09",
+      "name": "GPT-4-turbo-2024-04-09",
+      "short": [
+        10,
+        null,
+        null,
+        30
+      ],
+      "long": [
+        10,
+        null,
+        null,
+        30
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          5,
+          null,
+          null,
+          15
+        ],
+        "long": [
+          5,
+          null,
+          null,
+          15
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-4-0613",
+      "name": "GPT-4-0613",
+      "short": [
+        30,
+        null,
+        null,
+        60
+      ],
+      "long": [
+        30,
+        null,
+        null,
+        60
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          15,
+          null,
+          null,
+          30
+        ],
+        "long": [
+          15,
+          null,
+          null,
+          30
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-3.5-turbo",
+      "name": "GPT-3.5-turbo",
+      "short": [
+        0.5,
+        null,
+        null,
+        1.5
+      ],
+      "long": [
+        0.5,
+        null,
+        null,
+        1.5
+      ],
+      "contextThreshold": 272000,
+      "fast": null
+    },
+    {
+      "id": "gpt-3.5-turbo-0125",
+      "name": "GPT-3.5-turbo-0125",
+      "short": [
+        0.5,
+        null,
+        null,
+        1.5
+      ],
+      "long": [
+        0.5,
+        null,
+        null,
+        1.5
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.25,
+          null,
+          null,
+          0.75
+        ],
+        "long": [
+          0.25,
+          null,
+          null,
+          0.75
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-3.5-turbo-1106",
+      "name": "GPT-3.5-turbo-1106",
+      "short": [
+        1,
+        null,
+        null,
+        2
+      ],
+      "long": [
+        1,
+        null,
+        null,
+        2
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1,
+          null,
+          null,
+          2
+        ],
+        "long": [
+          1,
+          null,
+          null,
+          2
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "gpt-3.5-turbo-instruct",
+      "name": "GPT-3.5-turbo-instruct",
+      "short": [
+        1.5,
+        null,
+        null,
+        2
+      ],
+      "long": [
+        1.5,
+        null,
+        null,
+        2
+      ],
+      "contextThreshold": 272000,
+      "fast": null
+    },
+    {
+      "id": "davinci-002",
+      "name": "davinci-002",
+      "short": [
+        2,
+        null,
+        null,
+        2
+      ],
+      "long": [
+        2,
+        null,
+        null,
+        2
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          1,
+          null,
+          null,
+          1
+        ],
+        "long": [
+          1,
+          null,
+          null,
+          1
+        ]
+      },
+      "fast": null
+    },
+    {
+      "id": "babbage-002",
+      "name": "babbage-002",
+      "short": [
+        0.4,
+        null,
+        null,
+        0.4
+      ],
+      "long": [
+        0.4,
+        null,
+        null,
+        0.4
+      ],
+      "contextThreshold": 272000,
+      "batch": {
+        "short": [
+          0.2,
+          null,
+          null,
+          0.2
+        ],
+        "long": [
+          0.2,
+          null,
+          null,
+          0.2
+        ]
+      },
+      "fast": null
+    }
+  ]
+}

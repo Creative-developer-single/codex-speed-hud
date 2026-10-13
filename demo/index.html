@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex Speed HUD · 合成演示</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10151d;color:#e5eaf1;font:14px/1.7 system-ui,sans-serif}aside{position:fixed;inset:0 auto 0 0;width:220px;padding:28px 20px;background:#151b25;border-right:1px solid #303845}h1{font-size:18px;margin:0 0 8px}small{color:#a0afc4}.chat{padding:10px;border-radius:8px;margin-top:14px;background:#273241}.layout{max-width:960px;margin-left:220px;padding:44px}.tag{font-size:11px;color:#66dfc5;border:1px solid #316359;padding:4px 8px;border-radius:6px}h2{font-size:24px;margin-top:24px}.intro{color:#acb8c9}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}button{border:1px solid #3b485b;border-radius:8px;background:#202a39;color:inherit;padding:9px 14px;cursor:pointer}button:hover{background:#304059}pre{white-space:pre-wrap;background:#171f2b;border:1px solid #303b4c;border-radius:14px;min-height:240px;padding:20px;max-width:600px;font:13px/1.7 monospace}footer{color:#8392a8;font-size:12px}@media(max-width:600px){aside{display:none}.layout{margin:0;padding:20px}pre{max-width:100%;padding-bottom:180px}}
+header.demo-toolbar{position:fixed;top:14px;right:18px;display:flex;gap:8px;z-index:100}header.demo-toolbar button{display:flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0}.demo-divider{width:1px;height:24px;background:#3b485b;margin:2px 2px}
+</style></head><body>
+<header class="demo-toolbar" data-app-shell-header-slot-content><div style="display:flex;align-items:center;gap:6px"><div class="demo-divider" aria-hidden="true"></div><span><button data-app-shell-workspace-layout-toggle="main" aria-label="New tab" title="Synthetic toolbar">+</button></span></div></header>
+<aside><h1>Codex Speed HUD</h1><small>合成数据 · 不连接模型</small><div class="chat" data-app-action-sidebar-thread-row data-app-action-sidebar-thread-active="true" data-app-action-sidebar-thread-id="demo-thread">演示聊天 A</div></aside>
+<div class="layout"><span class="tag">插件验证环境</span><h2>实时输出观察面板</h2><p class="intro">用合成 App 通知验证悬浮层、聊天切换和工具等待。这里的 TTFT 和输出文本均为演示数据。</p>
+<div class="controls"><button id="start">开始流式演示</button><button id="tool">模拟工具等待</button><button id="switch">切换聊天</button><button id="interrupt">中断</button><button id="show">显示面板</button></div>
+<pre id="reply" aria-label="合成回复">点击“开始流式演示”后，正文会逐段增长。</pre><footer>输出结束后保留速率快照；累计用量使用 K / M / B。</footer></div>
+<script>
+window.electronBridge = { sendMessageFromView() {} };
+let interval, itemId = 'message', turnId, paused = false;
+const row = document.querySelector('[data-app-action-sidebar-thread-id]');
+const thread = () => row.getAttribute('data-app-action-sidebar-thread-id');
+const emit = (method, params = {}) => window.dispatchEvent(new MessageEvent('message', { data: { type: 'mcp-notification', hostId: 'local', method, params: { threadId: thread(), turnId, ...params } } }));
+document.getElementById('start').onclick = () => {
+ clearInterval(interval); paused = false; turnId = crypto.randomUUID(); itemId = crypto.randomUUID(); document.getElementById('reply').textContent = '';
+ emit('thread/started', { thread: { id: thread(), model: '演示模型 · 合成数据' } }); emit('turn/started', { turn: { id: turnId } });
+
+ const words = ('function measureVisibleSpeed() {\n  // 可见输出 token 速率为本地估算。\n  const windowMs = 2000;\n  return outputTokens / (windowMs / 1000);\n}\n\n').repeat(24).match(/.{1,8}|\n/g); let cursor = 0;
+ setTimeout(() => {
+  emit('item/started', { item: { id: itemId, type: 'agentMessage' } });
+  window.__codexSpeedHUD?.applyNative({ threadId: thread(), turnId, nativeTTFT: 210, source: 'connected' });
+  interval = setInterval(() => {
+   if (paused) return; const delta = words[cursor++];
+   if (!delta) { clearInterval(interval); emit('item/completed', { item: { id: itemId, type: 'agentMessage', text: document.getElementById('reply').textContent } }); emit('thread/tokenUsage/updated', { tokenUsage: { last: { outputTokens: 1280, reasoningOutputTokens: 600 }, total: { inputTokens: 18000, cachedInputTokens: 16000, outputTokens: 1280 } } }); emit('turn/completed', { turn: { id: turnId, status: 'completed' } }); return; }
+   emit('item/agentMessage/delta', { itemId, delta }); document.getElementById('reply').textContent += delta;
+  }, 70);
+ }, 350);
+};
+document.getElementById('tool').onclick = () => { paused = !paused; emit(paused ? 'item/started' : 'item/completed', { item: { id: 'tool', type: 'commandExecution' } }); };
+document.getElementById('switch').onclick = () => { clearInterval(interval); row.setAttribute('data-app-action-sidebar-thread-id', thread() === 'demo-thread' ? 'other-thread' : 'demo-thread'); row.textContent = thread() === 'demo-thread' ? '演示聊天 A' : '演示聊天 B'; };
+document.getElementById('interrupt').onclick = () => { clearInterval(interval); emit('turn/completed', { turn: { id: turnId, status: 'interrupted' } }); };
+document.getElementById('show').onclick = () => window.__codexSpeedHUD?.show();
+</script><script src="/hud.js"></script></body></html>

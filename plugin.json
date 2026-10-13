@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "codex-speed-hud",
+  "version": "0.4.4",
+  "description": "Local Codex App overlay for native turn TTFT and estimated visible token speed.",
+  "author": {
+    "name": "AgentCost Monitor contributors"
+  },
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md",
+      "interface": {
+        "displayName": "Codex Speed HUD",
+        "shortDescription": "TTFT and live visible tok/s",
+        "longDescription": "Local, temporary UI overlay. Watches existing renderer notifications and reads local completion logs. Native TTFT appears when recorded; live visible output speed is an estimate. Requires a loopback DevTools endpoint and Node.js 22+.",
+        "developerName": "AgentCost Monitor contributors",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Read"
+        ],
+        "defaultPrompt": [
+          "Start Codex Speed HUD.",
+          "Show Codex Speed HUD status.",
+          "Stop Codex Speed HUD."
+        ]
+      }
+    }
+  }
+}

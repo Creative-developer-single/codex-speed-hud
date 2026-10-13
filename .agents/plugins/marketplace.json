@@ -1,0 +1,20 @@
+{
+  "name": "agent-cost-monitor-local",
+  "interface": {
+    "displayName": "Codex Speed HUD"
+  },
+  "plugins": [
+    {
+      "name": "codex-speed-hud",
+      "source": {
+        "source": "local",
+        "path": "."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

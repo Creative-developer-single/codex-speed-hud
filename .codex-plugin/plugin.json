@@ -1,0 +1,20 @@
+{
+  "name": "codex-speed-hud",
+  "version": "0.4.4",
+  "description": "Native turn TTFT and estimated visible token speed inside Codex App.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Speed HUD",
+    "shortDescription": "TTFT and live visible tok/s",
+    "developerName": "AgentCost Monitor contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Start Codex Speed HUD.",
+      "Show Codex Speed HUD status.",
+      "Stop Codex Speed HUD."
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "codex-speed-hud",
+  "version": "0.4.4",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.15"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "start": "node scripts/control.mjs start",
+    "status": "node scripts/control.mjs status",
+    "stop": "node scripts/control.mjs stop",
+    "package": "python3 scripts/package.py",
+    "check:release": "python3 scripts/check_release.py"
+  },
+  "dependencies": {
+    "js-tiktoken": "1.0.21"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "jsdom": "26.1.0",
+    "vitest": "3.2.4"
+  },
+  "description": "Local Codex desktop first-stream latency, token speed, and usage HUD.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Creative-developer-single/codex-speed-hud.git"
+  },
+  "homepage": "https://github.com/Creative-developer-single/codex-speed-hud",
+  "bugs": {
+    "url": "https://github.com/Creative-developer-single/codex-speed-hud/issues"
+  }
+}
