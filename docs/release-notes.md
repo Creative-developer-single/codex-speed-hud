@@ -1,9 +1,7 @@
-Codex Speed HUD 0.4.4: the initial public release of the local desktop speedometer.
+Codex Speed HUD 0.4.5：修复 Dot 发起的 durable 聊天识别和事件适配。
 
-Download the runtime ZIP for installation without npm dependencies, or the source ZIP to build and modify. Verify downloaded artifacts against SHA256SUMS.
+桌面 local: ID 前缀不再覆盖 durable 执行主机。支持 App 已送达的正文增量测速；完整消息只有带明确同消息服务端起止时间时才计算平均吞吐，不将批量送达的间隔或历史记录当作瞬时速率。云端聊天不会混入本机日志、原生样本或输入框的模型选择。
 
-Requires Node.js 22.15+ and a compatible Linux Codex/ChatGPT desktop. Persistent setup is Linux-only. Tool-argument and compaction capture require a separately built, explicitly enabled native observer for codex-cli 0.162.0-alpha.17.2; the release does not include a native client binary.
+安装包已经打包运行依赖；源码包需要先构建。主要验证平台为 Linux，要求 Node.js 22.15+。本机原生工具参数与压缩观察补丁仍只支持 codex-cli 0.162.0-alpha.17.2，需另外构建启用，不包含原生二进制。
 
-The toolbar button toggles the panel. Hidden panels keep collecting. First flow, retained speed snapshots, per-turn averages, cumulative tokens and API-equivalent cost are supported. The GPT-6.1 Sol 500K pricing threshold is a project configuration override.
-
-No model forwarding proxy or hidden timing header is used. This is an independent community adapter; App updates may require compatibility work. See README, PRIVACY and THIRD_PARTY_NOTICES before installation.
+不修改上游地址、鉴权、请求、连接池或协议选择，不开启隐藏计时头。当前运行的 App 无需重启即可更新 HUD。云端未提供的指标不会伪造。

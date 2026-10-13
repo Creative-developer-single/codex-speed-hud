@@ -4,6 +4,7 @@ import { modelLabel } from './composer.mjs'
 const LIMIT = 64
 const TEXT_LIMIT = 256_000
 const validMs = (n) => Number.isFinite(n) && n >= 0 ? n : null
+const newItem = () => ({ text: '', tokens: 0, dirty: false, firstAt: null, lastAt: null, completed: false, lifecycleStart: null, serverStart: null })
 
 export class SpeedMetrics {
   constructor({ countTokens, now = () => performance.now() }) {
@@ -88,7 +89,7 @@ export class SpeedMetrics {
       if (turn.startedAt === null && !turn.items.size && !turn.firstEventSeen) turn.startedAt = at
       return
     }
-    const modelStreamEvent = ['item/agentMessage/delta', 'item/reasoning/summaryPartAdded', 'item/reasoning/summaryTextDelta', 'item/reasoning/textDelta'].includes(method)
+    const modelStreamEvent = ['item/agentMessage/delta', 'item/reasoning/summaryPartAdded', 'item/reasoning/summaryTextDelta', 'item/reasoning/textDelta', 'rawResponseItem/completed'].includes(method)
       || (method === 'item/started' && ['agentMessage', 'reasoning'].includes(p.item?.type))
     if (modelStreamEvent && !turn.firstEventSeen) {
       turn.firstEventSeen = true
@@ -114,14 +115,33 @@ export class SpeedMetrics {
       } else if (item.type === 'agentMessage') {
         let state = turn.items.get(item.id)
         if (!state) {
-          state = { text: '', tokens: 0, dirty: false, firstAt: null, lastAt: null, completed: false }
+          state = newItem()
           turn.items.set(item.id, state)
+        }
+        if (state.completed) return
+        if (method === 'item/started' && state.lifecycleStart === null) {
+          state.lifecycleStart = at
+          state.serverStart = validMs(p.startedAtMs)
         }
         if (method === 'item/completed') {
           // Capture the final dirty delta while the message is still active.
           this.sample(turn, at)
           // Hydrated final text supplies a count, never invented streaming timing.
           const text = typeof item.text === 'string' ? item.text : state.text
+          if (hostId === 'durable' && state.firstAt === null && state.lifecycleStart !== null && text.length <= TEXT_LIMIT) {
+            const finish = validMs(p.completedAtMs)
+            // Both timestamps must belong to this observed item on the same cloud clock.
+            // Batches received milliseconds apart are not instantaneous model generation.
+            const duration = state.serverStart !== null && finish !== null ? finish - state.serverStart : null
+            if (duration >= 250 && duration <= 86_400_000) {
+              state.completionTokens = this.countTokens(text)
+              state.completionMs = duration
+              session.lastTPS = state.completionTokens * 1000 / duration
+              session.lastRateKind = 'cloud-message-average'
+              session.lastBodyAtEpoch = Date.now()
+              this.freezeResponse(turn)
+            }
+          }
           // A mid-stream attachment must not count unobserved hydrated text as live output.
           if (state.firstAt === null) { state.text = text.slice(0, TEXT_LIMIT); state.dirty = true }
           state.completed = true
@@ -137,7 +157,7 @@ export class SpeedMetrics {
     if (method === 'item/agentMessage/delta' && typeof p.delta === 'string' && p.delta.length) {
       if (['completed', 'interrupted', 'failed'].includes(turn.status)) return
       let state = turn.items.get(p.itemId)
-      if (!state) { state = { text: '', tokens: 0, dirty: false, firstAt: null, lastAt: null, completed: false }; turn.items.set(p.itemId, state) }
+      if (!state) { state = newItem(); turn.items.set(p.itemId, state) }
       if (state.completed) return
       if (state.firstAt === null) {
         state.firstAt = at
@@ -156,7 +176,8 @@ export class SpeedMetrics {
       if (state.text.length === TEXT_LIMIT) turn.limited = true
       turn.status = 'streaming'
     }
-    if (['item/reasoning/summaryPartAdded', 'item/reasoning/summaryTextDelta', 'item/reasoning/textDelta'].includes(method)) turn.status = 'thinking'
+    if (['item/reasoning/summaryPartAdded', 'item/reasoning/summaryTextDelta', 'item/reasoning/textDelta'].includes(method)
+      || method === 'item/started' && p.item?.type === 'reasoning') turn.status = 'thinking'
     if (method === 'turn/completed') {
       this.sample(turn, at)
       turn.status = p.turn.status ?? 'completed'
@@ -180,8 +201,8 @@ export class SpeedMetrics {
     // One user turn owns all intermediate messages and tool cycles, never historical turns.
     if (!turn.limited) {
       const streamed = [...turn.items.values()].filter(item => item.firstAt !== null && item.streamMs > 0)
-      turn.streamTokens = streamed.reduce((sum, item) => sum + item.tokens, 0)
-      turn.streamMs = streamed.reduce((sum, item) => sum + item.streamMs, 0)
+      turn.streamTokens = streamed.reduce((sum, item) => sum + item.tokens, 0) + [...turn.items.values()].reduce((sum, item) => sum + (item.completionTokens ?? 0), 0)
+      turn.streamMs = streamed.reduce((sum, item) => sum + item.streamMs, 0) + [...turn.items.values()].reduce((sum, item) => sum + (item.completionMs ?? 0), 0)
     }
     turn.visibleTokens = [...turn.items.values()].reduce((sum, item) => sum + item.tokens, 0)
     const active = [...turn.items.values()].some(item => !item.completed && item.lastAt !== null && at - item.lastAt < 1500)
@@ -191,11 +212,17 @@ export class SpeedMetrics {
     const first = turn.samples[0]
     turn.liveTPS = first && at - first.at >= 250 ? Math.max(0, (turn.visibleTokens - first.tokens) * 1000 / (at - first.at)) : null
     // Only fresh text updates the retained snapshot; idle polling must not decay it.
-    if (changed && turn.liveTPS !== null && turn.liveTPS > 0) this.session(turn.hostId, turn.threadId).lastTPS = turn.liveTPS
+    if (changed && turn.liveTPS !== null && turn.liveTPS > 0) {
+      const session = this.session(turn.hostId, turn.threadId)
+      session.lastTPS = turn.liveTPS
+      session.lastRateKind = 'body'
+    }
     if (turn.tools.size) turn.liveTPS = null
   }
 
   applyNative(value) {
+    if (value.nativeStream?.source === 'native-observer' && ((value.hostId ?? 'local') !== 'local'
+      || value.nativeStream.threadId !== value.threadId || value.nativeStream.turnId !== value.turnId)) return
     const session = this.session(value.hostId ?? 'local', value.threadId)
     if (value.sessionUsage) session.usage = value.sessionUsage
     if (value.sessionCost) session.cost = value.sessionCost
@@ -263,6 +290,7 @@ export class SpeedMetrics {
       sessionCost: session.cost,
       lastBodyAtEpoch: session.lastBodyAtEpoch ?? 0,
       lastModelAtEpoch: session.lastModelAtEpoch ?? 0,
+      bodyRateKind: session.lastRateKind ?? 'body',
       nativeStream: session.nativeStream,
       nativeFirstSnapshot: session.nativeFirstSnapshot ?? null,
       nativeSpeedSnapshot: session.nativeSpeedSnapshot ?? null,

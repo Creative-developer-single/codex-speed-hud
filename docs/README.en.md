@@ -62,6 +62,12 @@ Tool execution stdout is not model-generated tool arguments. Compaction throughp
 
 Cost is **API-equivalent estimation, not the subscription bill**. The default GPT-6.1 Sol long-context threshold is a **500,000-input-token maintainer override** inherited from this project's requirements. It is not an assertion about the official billing threshold. Set `CODEX_SPEED_HUD_SOL_CONTEXT_THRESHOLD` to the threshold appropriate to your current price card. Public pricing refreshes daily; unknown model prices remain unknown.
 
+## Dot / durable conversations
+
+Desktop `local:` sidebar keys are normalized while the explicit `durable` execution host is preserved. Renderer notifications are isolated by host, thread and turn; cloud conversations never receive local session logs or native observer samples.
+
+Visible text deltas provide a windowed rate. Completion-only messages provide an average only when matching observed start/end notifications contain valid same-item server timestamps. Batch arrival gaps, historical completions and encrypted reasoning never fabricate instantaneous rates or first-flow start times. The cloud model/service tier is not guessed from the local composer.
+
 ## Privacy and transport
 
 There is no model forwarding proxy. The HUD does not rewrite backend URLs, authentication, request headers/body, TLS, connection pools, retries, or HTTP/WebSocket selection. The optional observer runs inside a same-version custom native client after response decoding and asynchronously writes numeric/identifier snapshots. It never enables hidden `runtime_metrics` or adds `x-responsesapi-include-timing-metrics`.

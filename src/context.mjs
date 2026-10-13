@@ -13,11 +13,18 @@ export function isVisible(element) {
   return true
 }
 
+export function normalizeThreadId(raw, hostId = null) {
+  if (typeof raw !== 'string' || !raw) return null
+  if (hostId && raw.startsWith(`${hostId}:`)) return raw.slice(hostId.length + 1)
+  // `local:` is a desktop sidebar key namespace, also used for durable tasks.
+  // The explicit execution host remains durable; never reinterpret it as local.
+  if ((!hostId || hostId === 'durable') && raw.startsWith('local:')) return raw.slice(6)
+  return raw
+}
+
 function identity(raw, hostId = null) {
   if (!raw) return { threadId: null, hostId }
-  if (!hostId && raw.startsWith('local:')) hostId = 'local'
-  const threadId = hostId && raw.startsWith(`${hostId}:`) ? raw.slice(hostId.length + 1) : raw
-  return { threadId, hostId }
+  return { threadId: normalizeThreadId(raw, hostId), hostId }
 }
 const temporary = id => id?.startsWith('client-new-thread:') === true
 const markerIdentity = node => identity(node.getAttribute('data-conversation-id') ?? node.getAttribute('data-above-composer-conversation-id'),

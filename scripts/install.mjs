@@ -5,6 +5,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { pluginRoot } from './runtime.mjs'
 import { installDesktop } from './desktop.mjs'
+import { registerMarketplace } from './marketplace.mjs'
 
 // A companion installer, not an unsupported arbitrary post-install manifest hook.
 const run = promisify(execFile)
@@ -24,7 +25,7 @@ if (!await exists(path.join(marketplace, '.agents/plugins/marketplace.json'))) {
   await mkdir(path.join(marketplace, '.agents/plugins'), { recursive: true })
   await writeFile(path.join(marketplace, '.agents/plugins/marketplace.json'), JSON.stringify({ name: 'agent-cost-monitor-local', interface: { displayName: 'AgentCost Monitor Local' }, plugins: [{ name: 'codex-speed-hud', source: { source: 'local', path: './plugin' }, policy: { installation: 'AVAILABLE', authentication: 'ON_INSTALL' }, category: 'Developer Tools' }] }, null, 2))
 }
-await run(cli, ['plugin', 'marketplace', 'add', marketplace, '--json'], { timeout: 30_000 })
+await registerMarketplace(cli, marketplace, run)
 const { version } = JSON.parse(await readFile(path.join(pluginRoot, '.codex-plugin/plugin.json'), 'utf8'))
 const added = JSON.parse((await run(cli, ['plugin', 'add', 'codex-speed-hud@agent-cost-monitor-local', '--json'], { timeout: 30_000 })).stdout)
 let identical = added.version === version

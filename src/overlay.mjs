@@ -8,7 +8,7 @@ import { gaugeMaximum, gaugeRatio } from './gauge.mjs'
 import { panelMarkup, toolbarIcon } from './panel.mjs'
 import { readActiveContext } from './context.mjs'
 
-const VERSION = '0.4.4'
+const VERSION = '0.4.5'
 const KEY = '__codexSpeedHUD'
 
 export function installHUD(window, countTokens) {
@@ -116,7 +116,8 @@ export function installHUD(window, countTokens) {
     nodes.caption.textContent = '速率'
     nodes.speed.title = compactCurrent && compactAverage != null ? '上一次压缩的输出 token ÷ 压缩总耗时，包含等待；保留到下一次输出更新。' : toolStream ? speedStream.toolHeld || speedStream !== nativeStream ? '上一次工具参数输出的速率快照。' : '模型生成工具参数的速率，不包含工具执行输出。' : lastState.speedHeld ? '上一次输出的速率，下一次输出后更新。' : '最近约 2 秒的文字输出速度。'
     lastState.shownTPS = speed; lastState.shownFirstMs = showRawFirst ? rawFirst : lastState.firstTokenMs
-    lastState.measurementKind = compactCurrent && compactAverage != null ? 'compaction-average' : toolStream ? 'tool-arguments' : 'body'
+    lastState.measurementKind = compactCurrent && compactAverage != null ? 'compaction-average' : toolStream ? 'tool-arguments' : lastState.bodyRateKind ?? 'body'
+    if (lastState.measurementKind === 'cloud-message-average') nodes.speed.title = '上一次云端完整消息的输出 tok ÷ 官方消息起止时间；这是消息平均吞吐，保留到下一次有效输出。'
     const nextMaximum = gaugeMaximum(speed, maximum)
     if (nextMaximum !== maximum) {
       maximum = nextMaximum
@@ -130,7 +131,7 @@ export function installHUD(window, countTokens) {
     shadow.querySelector('.meter').setAttribute('aria-label', `速率 ${nodes.speed.textContent} tok/s`)
     const average = observedClient ? nativeStream.turnAverageTPS : lastState.averageTPS
     nodes.average.textContent = average == null ? '—' : `${average.toFixed(1)} tok/s`
-    nodes.average.title = observedClient ? '本次用户对话内已完成的模型调用：输出 token 总数 ÷ 调用总耗时，包含首流等待、工具参数和压缩；不包含历史轮次。' : '本次用户对话内观察到的文字输出平均速率。'
+    nodes.average.title = observedClient ? '本次用户对话内已完成的模型调用：输出 token 总数 ÷ 调用总耗时，包含首流等待、工具参数和压缩；不包含历史轮次。' : '本次用户对话内观察到的正文流与带明确起止时间的云端完整消息平均速率；不包含历史轮次。'
     nodes.tokens.textContent = formatCumulative(lastState.sessionTokens, lastState.sessionCost)
     nodes.tokens.title = `当前聊天累计输入＋输出；缓存和推理不重复相加。K=千，M=百万，B=十亿。\n${costDescription(lastState.sessionCost)}`
     nodes.status.textContent = contextSource === 'pending-new-thread' ? '等待新聊天开始' : lastState.limited ? '长文本：实时估算已暂停' : statusLabels[lastState.status] ?? (threadId && !hostId ? '同名聊天：主机未确认' : '等待当前聊天')
@@ -146,7 +147,7 @@ export function installHUD(window, countTokens) {
     const notification = notificationFrom(decoded)
     if (!notification) return
     // Capture request settings once; live composer edits never change the displayed record.
-    if (notification.method === 'turn/started') {
+    if (notification.method === 'turn/started' && notification.hostId !== 'durable') {
       const context = activeContext()
       const threadId = notification.params.threadId ?? notification.params.thread?.id
       if (threadId === context.threadId && notification.hostId === context.hostId) {
@@ -197,6 +198,7 @@ export function installHUD(window, countTokens) {
   window[KEY] = {
     version: VERSION,
     snapshot() { render(); return { ...lastState, notifications: metrics.notifications, droppedTransfers: decoder.dropped, visible: !closed } },
+    inspect(threadId, hostId) { return metrics.snapshot(threadId, hostId) },
     applyNative(value) { metrics.applyNative(value); render() },
     show() { setClosed(false) },
     destroy() { stopped = true; window.clearInterval(timer); window.removeEventListener('message', onMessage); window.removeEventListener('resize', onResize); root.remove(); launcher.remove(); delete window[KEY] },

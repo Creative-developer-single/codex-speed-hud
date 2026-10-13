@@ -1,17 +1,31 @@
+import { normalizeThreadId } from './context.mjs'
+
 const METHODS = new Set([
   'thread/started', 'turn/started', 'turn/completed', 'item/started', 'item/completed',
   'item/agentMessage/delta', 'item/reasoning/summaryPartAdded', 'item/reasoning/summaryTextDelta', 'item/reasoning/textDelta',
-  'thread/tokenUsage/updated', 'model/rerouted', 'error',
+  'thread/tokenUsage/updated', 'model/rerouted', 'error', 'rawResponseItem/completed',
 ])
 
 /** Only known notifications are examined; tool arguments and prompts are not retained. */
-export function notificationFrom(value, depth = 0) {
+export function notificationFrom(value, depth = 0, inheritedHost = null) {
   if (!value || typeof value !== 'object' || depth > 3) return null
+  if (['mcp-response', 'mcp-request-delivery', 'fetch-response'].includes(value.type)) return null
+  const hostId = value.hostId ?? inheritedHost ?? 'local'
   if (METHODS.has(value.method) && value.params && typeof value.params === 'object') {
-    return { method: value.method, params: value.params, hostId: value.hostId ?? 'local' }
+    let params = value.params
+    const threadId = normalizeThreadId(params.threadId ?? params.thread?.id, hostId)
+    if (threadId) params = { ...params, threadId }
+    if (value.method === 'rawResponseItem/completed') {
+      const item = params.item
+      if (!['reasoning', 'function_call', 'custom_tool_call', 'mcp_call', 'compaction'].includes(item?.type)
+        && !(item?.type === 'message' && item.role === 'assistant')) return null
+      // Only the fact of a model event is needed. Never retain raw arguments or ciphertext.
+      params = { threadId, turnId: params.turnId, item: { type: item.type, role: item.role } }
+    }
+    return { method: value.method, params, hostId }
   }
   for (const key of ['notification', 'message', 'data']) {
-    const found = notificationFrom(value[key], depth + 1)
+    const found = notificationFrom(value[key], depth + 1, hostId)
     if (found) return { ...found, hostId: value.hostId ?? found.hostId }
   }
   return null
