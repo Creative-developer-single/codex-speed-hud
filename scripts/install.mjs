@@ -29,7 +29,7 @@ await registerMarketplace(cli, marketplace, run)
 const { version } = JSON.parse(await readFile(path.join(pluginRoot, '.codex-plugin/plugin.json'), 'utf8'))
 const added = JSON.parse((await run(cli, ['plugin', 'add', 'codex-speed-hud@agent-cost-monitor-local', '--json'], { timeout: 30_000 })).stdout)
 let identical = added.version === version
-if (identical) for (const filename of ['dist/hud.js', 'dist/runner.mjs', 'scripts/install.mjs', 'scripts/control.mjs', 'scripts/desktop.mjs', 'scripts/native-launch.mjs', 'native/observer.rs', 'native/apply.py', 'native/build.py', 'native/smoke.py']) {
+if (identical) for (const filename of ['dist/hud.js', 'dist/runner.mjs', 'scripts/install.mjs', 'scripts/control.mjs', 'scripts/desktop.mjs', 'scripts/native-launch.mjs', 'native/observer.rs', 'native/apply.py', 'native/build.py', 'native/refresh.py', 'native/smoke.py']) {
   try {
     if (!(await readFile(path.join(pluginRoot, filename))).equals(await readFile(path.join(added.installedPath, filename)))) { identical = false; break }
   } catch { identical = false; break }

@@ -22,7 +22,7 @@ describe('native log observation', () => {
     n.accept(delta('secret', 1500)); n.accept(delta('-arg', 2000))
     n.accept(sse({ type: 'response.completed', response: { id: 'r', usage: { output_tokens: 20 } } }, 2300))
     const result = n.read('t', {}, 6000)
-    expect(result.nativeStream).toMatchObject({ firstStreamMs: 500, toolTPS: 8, toolTokens: 10, toolHeld: true, turnId: 'u' })
+    expect(result.nativeStream).toMatchObject({ firstStreamMs: null, requestFirstStreamMs: 500, toolTPS: 8, toolTokens: 10, toolHeld: true, turnId: 'u' })
     expect(JSON.stringify(result)).not.toMatch(/private-prompt|secret|-arg/)
     expect([...n.metrics.requests.values()][0].tools.get('call').text).toBe('')
   })

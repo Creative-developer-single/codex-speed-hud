@@ -53,7 +53,7 @@ node scripts/control.mjs start
 
 | Field | HUD only | With native observer |
 | --- | --- | --- |
-| 首流 / first flow | Turn start to the first observed model stream notification; previous native timing is a fallback | Native request start to the first decoded response event, including `response.created` |
+| 首流 / first flow | Observed turn start to the first model stream notification; historical content TTFT is not used | Codex generation trigger to the first decoded response event, including `response.created`; continuations and compaction have separate triggers |
 | 速率 / rate | Estimated visible-text token growth over about two seconds | Also estimates streamed tool arguments; opaque compaction uses completed output tokens / full request duration |
 | 本次平均 / turn average | Observed visible tokens / observed text streaming time | Sum of completed output tokens / sum of native request durations for the same user turn, including waiting, reasoning, tool arguments, and compaction |
 | 累计 / cumulative | Historical input + output, plus estimated cost | Same accounting, with native usage records |
@@ -104,3 +104,7 @@ If the native observer was enabled, set its `native-client/enabled.json` `enable
 ## License
 
 Original HUD/observer code: [MIT](../LICENSE). Modified snippets from the official Codex source retain [Apache-2.0](../licenses/codex-LICENSE) and its [NOTICE](../licenses/codex-NOTICE). Bundled tokenizer dependencies retain their own notices: [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+
+### First-flow semantics (0.4.6)
+
+The optional native observer measures from Codex's generation task trigger through the first decoded response event (including `response.created`), covering local preparation and connection waiting. Each tool continuation and compaction gets its own trigger; retries share their generation trigger and earliest first event. Historical effective-content TTFT and old request-only latency cannot fill this field. Rebuild the optional client and launch the App normally to activate new native hooks; the HUD itself hot-updates. Without core hooks, renderer notifications only cover an observed turn start, and missing continuation triggers are not inferred. Rate and per-turn average timing are unchanged.

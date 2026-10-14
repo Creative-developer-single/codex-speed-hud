@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import queue
+import signal
 import subprocess
 import sys
 import tempfile
@@ -87,12 +88,14 @@ base_url = "http://127.0.0.1:{server.server_port}/v1"
 wire_api = "responses"
 env_key = "HUD_FIXTURE_KEY"
 supports_websockets = {str(websocket).lower()}
+[features]
+token_budget = false
 ''')
         env = {**os.environ, 'CODEX_HOME': str(root), 'HUD_FIXTURE_KEY':'dummy-fixture-key',
                'CODEX_SPEED_HUD_NATIVE_DIR':str(root/'metrics'), 'RUST_LOG':'warn'}
         for key in ['OPENAI_API_KEY','CODEX_CLI_PATH','CODEX_INTERNAL_ORIGINATOR_OVERRIDE','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','http_proxy','https_proxy','all_proxy']:
             env.pop(key,None)
-        proc = subprocess.Popen([binary,'app-server'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,env=env)
+        proc = subprocess.Popen([binary,'app-server'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,env=env,start_new_session=True)
         rows = queue.Queue()
         def read():
             for line in proc.stdout:
@@ -123,12 +126,31 @@ supports_websockets = {str(websocket).lower()}
                 samples=[json.loads(p.read_text()) for p in (root/'metrics').glob('*.json')]
                 if len(samples)>=2 and all(v['status']=='completed' for v in samples): break
                 time.sleep(.05)
+            if samples:
+                assert len({s['generationId'] for s in samples})==2
+                assert len(samples)==2 and any(s['toolTPS'] is not None and s['toolTPS']>0 for s in samples)
+            send({'id':4,'method':'thread/compact/start','params':{'threadId':thread}})
+            wait(lambda v:v.get('id')==4)
+            compact_done=wait(lambda v:v.get('method')=='turn/completed')
+            assert compact_done['params']['turn']['status']=='completed'
+            compact_turn=compact_done['params']['turn']['id']
+            deadline=time.monotonic()+5
+            while time.monotonic()<deadline:
+                samples=[json.loads(p.read_text()) for p in (root/'metrics').glob('*.json')]
+                if len(samples)>=3 and all(v['status']=='completed' for v in samples): break
+                if not samples and time.monotonic()>deadline-4: break
+                time.sleep(.05)
             for sample in samples:
-                assert sample['threadId']==thread and sample['turnId']==turn
+                assert sample['threadId']==thread and sample['turnId'] in [turn,compact_turn]
                 assert sample['firstStreamMs'] is not None and sample['source']=='native-observer'
+                assert sample['firstFlowBasis']=='generation-trigger' and sample['generationId']
+                assert sample['generationStartedAt'] <= sample['startedAt']
+                assert sample['firstStreamMs'] >= sample['requestFirstStreamMs']
+                assert abs(sample['firstEventAt']-sample['generationStartedAt']-sample['firstStreamMs']) < 5
                 assert 'dummy' not in json.dumps(sample) and 'fixture-key' not in json.dumps(sample)
             if samples:
-                assert len(samples)==2 and any(s['toolTPS'] is not None and s['toolTPS']>0 for s in samples)
+                assert len(samples)==3 and len({s['generationId'] for s in samples})==3
+                assert any(s['kind']=='compaction' and s['turnId']==compact_turn for s in samples)
             # Remove expected per-process/session randomness for comparison. Keep actual request logic.
             from urllib.parse import urlsplit
             for req in requests:
@@ -142,9 +164,15 @@ supports_websockets = {str(websocket).lower()}
                     if isinstance(item.get('id'),str) and item['id'].startswith(('msg_','fco_')): item['id']=item['id'].split('_')[0]+'_<dynamic>'
             return {'requests':requests,'initialization':initialization['result'], 'samples':len(samples), 'toolSamples':sum(s['toolTPS'] is not None for s in samples)}
         finally:
-            proc.terminate()
+            # The isolated fixture owns this process group, including background plugin fetches.
+            # Never leave a child writing into the temporary home while it is removed.
+            try: os.killpg(proc.pid, signal.SIGTERM)
+            except ProcessLookupError: pass
             try: proc.wait(timeout=5)
-            except subprocess.TimeoutExpired: proc.kill();proc.wait()
+            except subprocess.TimeoutExpired: pass
+            try: os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+            proc.wait()
             server.shutdown()
 
 if __name__=='__main__':

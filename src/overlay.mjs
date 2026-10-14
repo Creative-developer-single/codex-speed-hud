@@ -8,7 +8,7 @@ import { gaugeMaximum, gaugeRatio } from './gauge.mjs'
 import { panelMarkup, toolbarIcon } from './panel.mjs'
 import { readActiveContext } from './context.mjs'
 
-const VERSION = '0.4.5'
+const VERSION = '0.4.6'
 const KEY = '__codexSpeedHUD'
 
 export function installHUD(window, countTokens) {
@@ -107,9 +107,9 @@ export function installHUD(window, countTokens) {
     const toolStream = speedStream?.kind === 'response' && speedStream.toolTPS != null && speedStream.toolLastAt >= (lastState.lastBodyAtEpoch ?? 0)
     const speed = compactCurrent && compactAverage != null ? compactAverage : toolStream ? speedStream.toolTPS : lastState.displayTPS
     const observedClient = nativeStream?.source === 'native-observer'
-    const rawFirst = observedClient ? lastState.nativeFirstSnapshot?.ms : compactCurrent ? compactStream?.firstStreamMs ?? compaction?.firstStreamMs : toolStream ? speedStream.firstStreamMs : null
-    const rawEpoch = observedClient ? lastState.nativeFirstSnapshot?.at ?? 0 : compactCurrent ? compactEpoch : toolStream ? speedStream.toolLastAt : 0
-    const showRawFirst = rawFirst != null && (observedClient && !nativeStream.limited && nativeStream.turnId === lastState.turnId
+    const rawFirst = lastState.nativeFirstSnapshot?.basis === 'generation-trigger' ? lastState.nativeFirstSnapshot.ms : null
+    const rawEpoch = lastState.nativeFirstSnapshot?.at ?? 0
+    const showRawFirst = rawFirst != null && (observedClient
       || rawEpoch >= (lastState.lastModelAtEpoch ?? 0))
     if (showRawFirst) nodes.first.textContent = ms(rawFirst)
     nodes.speed.textContent = speed == null ? '—' : speed.toFixed(1)
@@ -138,8 +138,8 @@ export function installHUD(window, countTokens) {
     nodes.source.textContent = decoder.dropped ? `丢失 ${decoder.dropped}` : ''
     nodes.dot.dataset.connected = String(lastBridgeAt !== null)
     nodes.dot.title = lastBridgeAt === null ? '等待连接' : '流事件已连接'
-    nodes.first.title = lastState.firstHeld ? '上一次测得的首流延迟，测到新值后更新。' : lastState.firstTokenSource === 'native' ? '原生首响应记录；本次完整流事件未捕获时使用。' : '本次回合开始至首个模型流事件的延迟，包含思考，不等待正文。'
-    if (showRawFirst) nodes.first.title = compactCurrent ? '压缩开始至原生日志记录的首个压缩流事件。' : '本次模型请求开始至首个模型输出流事件，包含工具参数与思考。'
+    nodes.first.title = lastState.firstHeld ? '上一次测得的首流延迟，测到新值后更新。' : '本次回合开始至首个模型流事件的延迟，包含思考，不等待正文。'
+    if (showRawFirst) nodes.first.title = '最近一次测得的 Codex 生成任务触发至第一条响应流事件，包含本机准备与连接等待；工具后的生成和压缩分别计时，不等待有效文字。'
   }
   function onMessage(event) {
     if (event.source && event.source !== window) return

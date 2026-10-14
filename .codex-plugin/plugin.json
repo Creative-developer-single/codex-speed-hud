@@ -1,6 +1,6 @@
 {
   "name": "codex-speed-hud",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Native turn TTFT and estimated visible token speed inside Codex App.",
   "skills": "./skills/",
   "interface": {

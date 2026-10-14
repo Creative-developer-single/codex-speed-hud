@@ -30,7 +30,7 @@ python3 native/build.py --stage-existing
 
 ## Observation boundaries
 
-Hooks are inserted after decoded SSE/WS event receipt and before the original converter filters tool argument deltas. The patch does not modify URL, credentials, headers/body, TLS, connection pooling, protocol choice, or retry logic. Hidden `runtime_metrics` remains disabled. Local first-flow timing includes `response.created`; WS warmup with `generate=false` is excluded.
+Hooks are inserted after decoded SSE/WS event receipt and before the original converter filters tool argument deltas. The patch does not modify URL, credentials, headers/body, TLS, connection pooling, protocol choice, or retry logic. Hidden `runtime_metrics` remains disabled. First-flow timing starts at the core generation trigger, before preparation and connection acquisition, and includes `response.created`; initial generation uses the turn task start, continuations use the sampling-loop trigger, compaction uses its task entry. A task-local context (explicitly captured for the WS worker) correlates retries without adding request metadata; WS warmup with `generate=false` is excluded.
 
 A nonblocking bounded queue sends selected fields to a background worker for tokenization. No model proxy or additional upstream connection is introduced. Arguments exist transiently in worker memory; bounded numeric snapshots are atomically written with private filesystem permissions. Dropped/oversized samples invalidate the affected measurement rather than inventing a rate.
 
@@ -43,3 +43,11 @@ Set `enabled` to false in `native-client/enabled.json`, then normally reopen the
 ## Licensing
 
 `native/observer.rs` is original MIT code. Modified Codex hook snippets in `native/apply.py` and the unified patch are derived from Apache-2.0 Codex at the pinned revision; retain `licenses/codex-LICENSE` and `licenses/codex-NOTICE`. Those files have been modified for this local observation feature. The upstream Rust project and its dependencies retain their original licenses; distribute a rebuilt native binary only with a separate dependency-license review.
+
+### First-flow update (0.4.6)
+
+Rebuild the optional client after updating the HUD. Existing running clients keep their old code until the next normal App launch; installation never terminates the App. Old request-only first latency and historical content TTFT are rejected for this field. Visible speeds and averages remain available while awaiting the updated client.
+
+Rebuilding automatically refreshes a hash-verified prior HUD patch from the pinned official archive. Unrecognized observer edits or changes to other source files stop the refresh before any file is restored.
+
+Validated clients are staged under a content-addressed filename alongside prior clients. Rebuilding preserves existing executables and currently running child-launch paths; the launcher can migrate a hash-verified previous owned client path on the next normal launch.

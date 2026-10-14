@@ -4,7 +4,7 @@ import path from 'node:path'
 
 const safeId = v => typeof v === 'string' && /^[\w.-]{1,160}$/.test(v) ? v : null
 const number = v => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null
-const numeric = ['startedAt', 'completedAt', 'durationMs', 'firstStreamMs', 'toolTPS', 'toolLastAt', 'toolTokens', 'toolStreamMs', 'toolAverageTPS', 'outputTokens', 'totalAverageTPS']
+const numeric = ['generationStartedAt', 'firstEventAt', 'requestFirstStreamMs', 'startedAt', 'completedAt', 'durationMs', 'firstStreamMs', 'toolTPS', 'toolLastAt', 'toolTokens', 'toolStreamMs', 'toolAverageTPS', 'outputTokens', 'totalAverageTPS']
 
 // Only accept the native worker's bounded, numeric schema. Do not consume arbitrary payloads.
 export function sanitizeObserver(value) {
@@ -12,9 +12,12 @@ export function sanitizeObserver(value) {
     || !['response', 'compaction'].includes(value.kind) || !['waiting', 'streaming', 'completed', 'failed', 'interrupted'].includes(value.status)) return null
   const result = { schema: 1, source: 'native-observer', id: value.id, threadId: value.threadId, turnId: value.turnId,
     model: safeId(value.model), responseId: safeId(value.responseId), kind: value.kind, status: value.status,
-    limited: value.limited === true, toolHeld: value.toolHeld === true }
+    limited: value.limited === true, toolHeld: value.toolHeld === true,
+    generationId: safeId(value.generationId), firstFlowBasis: value.firstFlowBasis === 'generation-trigger' ? 'generation-trigger' : 'unknown' }
   for (const key of numeric) result[key] = number(value[key])
   if (result.startedAt === null || result.durationMs === null) return null
+  if (result.firstFlowBasis !== 'generation-trigger' || !result.generationId || result.generationStartedAt === null || result.firstEventAt === null
+    || Math.abs(result.firstEventAt - result.generationStartedAt - (result.firstStreamMs ?? 0)) > 5) result.firstStreamMs = null
   if (result.limited) for (const key of ['toolTPS', 'toolAverageTPS', 'totalAverageTPS', 'firstStreamMs']) result[key] = null
   return result
 }
@@ -47,6 +50,10 @@ export class ObserverReader {
     const latest = samples.at(-1)
     if (!latest) return null
     const result = { ...latest, toolHeld: latest.toolHeld || latest.toolLastAt === null || this.now() - latest.toolLastAt >= 1500 }
+    // Retrying the same generation keeps its original trigger and earliest first event.
+    const first = samples.filter(v => v.generationId === latest.generationId && v.generationStartedAt === latest.generationStartedAt && v.firstStreamMs !== null && v.firstFlowBasis === 'generation-trigger')
+      .sort((a, b) => a.firstEventAt - b.firstEventAt)[0]
+    if (first) { result.firstStreamMs = first.firstStreamMs; result.firstEventAt = first.firstEventAt }
     const completed = samples.filter(v => v.status === 'completed' && !v.limited && v.outputTokens !== null && v.durationMs > 0)
     const output = completed.reduce((n, v) => n + v.outputTokens, 0), duration = completed.reduce((n, v) => n + v.durationMs, 0)
     result.turnAverageTPS = duration > 0 ? output * 1000 / duration : null

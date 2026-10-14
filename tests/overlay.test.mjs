@@ -8,7 +8,7 @@ describe('overlay lifecycle and chat switching', () => {
     const w = dom.window, hud = installHUD(w, s => s.length)
     w.dispatchEvent(new w.MessageEvent('message', { data: { type: 'mcp-notification', method: 'turn/started', params: { threadId: 't', turn: { id: 'u' } } } }))
     const epoch = Date.now() + 1000
-    const stream = { source: 'native-observer', id: 'a', threadId: 't', turnId: 'u', kind: 'response', status: 'completed', startedAt: epoch, completedAt: epoch + 1000, durationMs: 1000, toolTPS: 20, toolLastAt: epoch + 900, firstStreamMs: 400, turnAverageTPS: 80 }
+    const stream = { source: 'native-observer', id: 'a', threadId: 't', turnId: 'u', kind: 'response', status: 'completed', startedAt: epoch, completedAt: epoch + 1000, durationMs: 1000, toolTPS: 20, toolLastAt: epoch + 900, firstStreamMs: 400, firstFlowBasis: 'generation-trigger', generationId: 'g1', generationStartedAt: epoch, firstEventAt: epoch + 400, turnAverageTPS: 80 }
     hud.applyNative({ threadId: 't', turnId: 'u', nativeStream: stream })
     const shadow = w.document.getElementById('codex-speed-hud').shadowRoot
     expect(shadow.querySelector('[data-speed]').textContent).toBe('20.0')
@@ -24,14 +24,14 @@ describe('overlay lifecycle and chat switching', () => {
     const hud = installHUD(dom.window, s => s.length)
     const shadow = dom.window.document.getElementById('codex-speed-hud').shadowRoot
     const epoch = Date.now() + 1000
-    hud.applyNative({ threadId: 't', nativeStream: { kind: 'compaction', startedAt: epoch, completedAt: epoch + 10000, totalAverageTPS: 100, firstStreamMs: 700 } })
+    hud.applyNative({ threadId: 't', turnId: 'u', nativeStream: { source: 'native-observer', threadId: 't', turnId: 'u', firstFlowBasis: 'generation-trigger', generationId: 'g1', generationStartedAt: epoch, firstEventAt: epoch + 700, durationMs: 10000, kind: 'compaction', startedAt: epoch, completedAt: epoch + 10000, totalAverageTPS: 100, firstStreamMs: 700 } })
     expect(shadow.querySelector('[data-speed]').textContent).toBe('100.0')
     expect(shadow.querySelector('[data-first]').textContent).toBe('0.70 s')
     expect(shadow.querySelector('[data-speed]').title).toContain('压缩总耗时')
     expect(shadow.querySelector('[data-activity]')).toBeNull()
     expect(shadow.querySelectorAll('dt')).toHaveLength(3)
     expect(hud.snapshot().measurementKind).toBe('compaction-average')
-    hud.applyNative({ threadId: 't', nativeStream: { kind: 'response', toolTPS: 20, toolLastAt: epoch + 12000, toolTokens: 10, toolHeld: true, firstStreamMs: 400 } })
+    hud.applyNative({ threadId: 't', turnId: 'u', nativeStream: { source: 'native-observer', threadId: 't', turnId: 'u', firstFlowBasis: 'generation-trigger', generationId: 'g2', generationStartedAt: epoch + 11000, firstEventAt: epoch + 11400, durationMs: 1000, kind: 'response', toolTPS: 20, toolLastAt: epoch + 12000, toolTokens: 10, toolHeld: true, firstStreamMs: 400 } })
     expect(shadow.querySelector('[data-speed]').textContent).toBe('20.0')
     expect(shadow.querySelector('[data-first]').textContent).toBe('0.40 s')
     expect(shadow.querySelector('[data-speed]').title).toContain('工具参数')
@@ -173,4 +173,26 @@ describe('overlay lifecycle and chat switching', () => {
     expect(clicks).toBe(0)
     hud.destroy(); w.close()
   })
+})
+
+it('does not display request-only latency and keeps generation first-flow snapshots across tool cycles', () => {
+  const dom = new JSDOM('<body><div data-app-action-sidebar-thread-active="true" data-app-action-sidebar-thread-id="t"></div></body>', { url: 'http://127.0.0.1/' })
+  const hud = installHUD(dom.window, s => s.length)
+  const apply = stream => hud.applyNative({ hostId: 'local', threadId: 't', turnId: 'u', nativeStream: { source: 'native-observer', threadId: 't', turnId: 'u', status: 'streaming', kind: 'response', startedAt: 1000, durationMs: 100, ...stream } })
+  try {
+    apply({ firstStreamMs: 10 })
+    expect(hud.snapshot().shownFirstMs).toBeNull()
+    apply({ firstFlowBasis: 'generation-trigger', generationId: 'g1', generationStartedAt: 900, firstEventAt: 1100, firstStreamMs: 200 })
+    expect(hud.snapshot().shownFirstMs).toBe(200)
+    apply({ firstFlowBasis: 'generation-trigger', generationId: 'g2', firstStreamMs: null })
+    expect(hud.snapshot().shownFirstMs).toBe(200)
+    apply({ firstFlowBasis: 'generation-trigger', generationId: 'g2', generationStartedAt: 2000, firstEventAt: 2800, firstStreamMs: 800 })
+    expect(hud.snapshot().shownFirstMs).toBe(800)
+    apply({ limited: true, firstStreamMs: null })
+    expect(hud.snapshot().shownFirstMs).toBe(800)
+    apply({ firstFlowBasis: 'generation-trigger', generationId: 'old', generationStartedAt: 700, firstEventAt: 750, firstStreamMs: 50 })
+    expect(hud.snapshot().shownFirstMs).toBe(800)
+    hud.applyNative({ hostId: 'durable', threadId: 't', turnId: 'u', nativeStream: { source: 'native-observer', threadId: 't', turnId: 'u', firstFlowBasis: 'generation-trigger', generationId: 'foreign', firstEventAt: 9999, firstStreamMs: 1 } })
+    expect(hud.snapshot().shownFirstMs).toBe(800)
+  } finally { hud.destroy(); dom.window.close() }
 })

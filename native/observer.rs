@@ -8,12 +8,31 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock, mpsc};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::future::Future;
 
 const MAX_DELTA: usize = 16_384;
 const MAX_TEXT: usize = 262_144;
 const MAX_REQUESTS: usize = 128;
 static NEXT: AtomicU64 = AtomicU64::new(1);
 static WORKER: OnceLock<Option<mpsc::SyncSender<Packet>>> = OnceLock::new();
+
+/// Observation-only context; never serialized into a model request.
+pub struct Generation {
+    thread: String, turn: String, id: String, start: Instant, epoch: f64, compaction: bool,
+}
+tokio::task_local! { static GENERATION: Arc<Generation>; }
+pub(crate) fn current_generation() -> Option<Arc<Generation>> {
+    GENERATION.try_with(Arc::clone).ok()
+}
+pub async fn scope_generation<F: Future>(thread: &str, turn: &str, start: Instant, compaction: bool, future: F) -> F::Output {
+    if std::env::var_os("CODEX_SPEED_HUD_NATIVE_DIR").is_none() { return future.await; }
+    let epoch = SystemTime::now().duration_since(UNIX_EPOCH).map(|v| v.as_secs_f64() * 1000.0).unwrap_or(0.0)
+        - start.elapsed().as_secs_f64() * 1000.0;
+    let generation = Arc::new(Generation { thread: thread.into(), turn: turn.into(),
+        id: format!("generation-{}-{}-{}", std::process::id(), epoch as u64, NEXT.fetch_add(1, Ordering::Relaxed)),
+        start, epoch, compaction });
+    GENERATION.scope(generation, future).await
+}
 
 fn safe(value: &str) -> Option<String> {
     (!value.is_empty() && value.len() <= 160 && value.bytes().all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b)))
@@ -27,7 +46,7 @@ struct Packet {
     data: Data,
 }
 enum Data {
-    Begin { thread: String, turn: String, model: String, epoch: f64 },
+    Begin { thread: String, turn: String, model: String, epoch: f64, generation: Option<Arc<Generation>>, offset: Option<f64> },
     Event { response_id: Option<String>, compaction: bool, flow: bool, tool: Option<(String, String)>, output: Option<u64>, terminal: Option<&'static str>, invalid: bool },
     End,
 }
@@ -40,7 +59,7 @@ pub(crate) struct Observer {
 }
 
 impl Observer {
-    pub(crate) fn begin(thread: Option<&str>, turn: Option<&str>, model: &str, warmup: bool) -> Option<Self> {
+    pub(crate) fn begin(thread: Option<&str>, turn: Option<&str>, model: &str, warmup: bool, generation: Option<Arc<Generation>>) -> Option<Self> {
         if warmup || std::env::var_os("CODEX_SPEED_HUD_NATIVE_DIR").is_none() { return None; }
         let thread = safe(thread?)?;
         let turn = safe(turn?)?;
@@ -57,7 +76,9 @@ impl Observer {
         }).as_ref()?.clone();
         let result = Self { id: format!("{}-{}-{}", std::process::id(), epoch as u64, NEXT.fetch_add(1, Ordering::Relaxed)), start,
             lost: Arc::new(AtomicBool::new(false)), sender };
-        result.send(Data::Begin { thread, turn, model, epoch });
+        let generation = generation.filter(|g| g.thread == thread && g.turn == turn && g.start <= start);
+        let offset = generation.as_ref().map(|g| start.duration_since(g.start).as_secs_f64() * 1000.0);
+        result.send(Data::Begin { thread, turn, model, epoch, generation, offset });
         Some(result)
     }
     fn send(&self, data: Data) {
@@ -83,7 +104,7 @@ impl Drop for Observer { fn drop(&mut self) { self.send(Data::End); } }
 #[derive(Default)]
 struct Tool { text: String, tokens: usize }
 struct Sample {
-    thread: String, turn: String, model: String, epoch: f64, response: Option<String>,
+    thread: String, turn: String, model: String, epoch: f64, generation: Option<Arc<Generation>>, offset: Option<f64>, response: Option<String>,
     first: Option<f64>, elapsed: f64, completed: Option<f64>, compaction: bool, status: &'static str,
     tools: HashMap<String, Tool>, first_tool: Option<f64>, last_tool: Option<f64>,
     points: VecDeque<(f64, usize)>, tps: Option<f64>, tokens: usize, output: Option<u64>, invalid: bool,
@@ -132,7 +153,12 @@ impl Sample {
         json!({ "schema": 1, "source": "native-observer", "id": id, "threadId": self.thread, "turnId": self.turn,
             "model": self.model, "responseId": self.response, "kind": if self.compaction { "compaction" } else { "response" },
             "startedAt": self.epoch, "completedAt": self.completed.map(|at| self.epoch + at), "status": self.status,
-            "firstStreamMs": if limited { None } else { self.first }, "durationMs": self.elapsed, "toolLastAt": self.last_tool.map(|at| self.epoch + at),
+            "firstFlowBasis": if self.generation.is_some() { "generation-trigger" } else { "unknown" },
+            "generationId": self.generation.as_ref().map(|g| &g.id),
+            "generationStartedAt": self.generation.as_ref().map(|g| g.epoch),
+            "firstEventAt": self.first.map(|ms| self.epoch + ms),
+            "requestFirstStreamMs": if limited { None } else { self.first },
+            "firstStreamMs": if limited { None } else { self.first.zip(self.offset).map(|(first, offset)| first + offset) }, "durationMs": self.elapsed, "toolLastAt": self.last_tool.map(|at| self.epoch + at),
             "toolHeld": self.completed.is_some(), "toolTPS": if limited { None } else { self.tps },
             "toolTokens": self.tokens, "toolStreamMs": stream_ms,
             "toolAverageTPS": if !limited && stream_ms >= 250.0 { Some(self.tokens as f64 * 1000.0 / stream_ms) } else { None },
@@ -159,14 +185,14 @@ fn worker(directory: PathBuf, receiver: mpsc::Receiver<Packet>) {
                 }); continue;
             }
         };
-        if let Data::Begin { thread, turn, model, epoch } = packet.data {
+        if let Data::Begin { thread, turn, model, epoch, generation, offset } = packet.data {
             if samples.len() >= MAX_REQUESTS {
                 if let Some(id) = samples.iter().min_by_key(|(_, s)| s.updated).map(|(id, _)| id.clone()) {
                     samples.remove(&id); let _ = fs::remove_file(directory.join(format!("{id}.json")));
                 }
             }
-            samples.insert(packet.id.clone(), Sample { thread, turn, model, epoch, response: None, first: None, elapsed: 0.0, completed: None,
-                compaction: false, status: "waiting", tools: HashMap::new(), first_tool: None, last_tool: None, points: VecDeque::new(),
+            samples.insert(packet.id.clone(), Sample { compaction: generation.as_ref().is_some_and(|g| g.compaction), thread, turn, model, epoch, generation, offset, response: None, first: None, elapsed: 0.0, completed: None,
+                status: "waiting", tools: HashMap::new(), first_tool: None, last_tool: None, points: VecDeque::new(),
                 tps: None, tokens: 0, output: None, invalid: false, lost: packet.lost, updated: Instant::now(),
                 published_first: false, last_published: Instant::now() - Duration::from_secs(1) });
         } else if let Some(sample) = samples.get_mut(&packet.id) { sample.accept(packet.elapsed, packet.data, &encoder); }
@@ -192,7 +218,7 @@ fn worker(directory: PathBuf, receiver: mpsc::Receiver<Packet>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn sample() -> Sample { Sample { thread: "thread".into(), turn: "turn".into(), model: "gpt-test".into(), epoch: 1000.0, response: None,
+    fn sample() -> Sample { Sample { thread: "thread".into(), turn: "turn".into(), model: "gpt-test".into(), epoch: 1000.0, generation: Some(Arc::new(Generation { thread: "thread".into(), turn: "turn".into(), id: "g".into(), start: Instant::now(), epoch: 1000.0, compaction: false })), offset: Some(0.0), response: None,
         first: None, elapsed: 0.0, completed: None, compaction: false, status: "waiting", tools: HashMap::new(), first_tool: None,
         last_tool: None, points: VecDeque::new(), tps: None, tokens: 0, output: None, invalid: false,
         lost: Arc::new(AtomicBool::new(false)), updated: Instant::now(), published_first: false, last_published: Instant::now() } }
@@ -223,4 +249,26 @@ mod tests {
         let observer = Observer { id: "test".into(), start: Instant::now(), lost: Arc::new(AtomicBool::new(false)), sender };
         observer.send(Data::End); observer.send(Data::End); assert!(observer.lost.load(Ordering::Relaxed));
     }
+    #[test] fn generation_latency_includes_preparation_without_changing_request_rate_duration() {
+        let encoder = tiktoken_rs::o200k_base().unwrap(); let mut s = sample();
+        s.offset = Some(800.0);
+        s.accept(200.0, event(None, None), &encoder);
+        s.accept(1000.0, event(None, Some("completed")), &encoder);
+        assert_eq!(s.snapshot("id")["firstStreamMs"], 1000.0);
+        assert_eq!(s.snapshot("id")["requestFirstStreamMs"], 200.0);
+        assert_eq!(s.snapshot("id")["totalAverageTPS"], 50.0);
+        s.offset = None;
+        assert_eq!(s.snapshot("id")["firstStreamMs"], Value::Null);
+    }
+    #[tokio::test] async fn generation_context_is_isolated_between_tasks_and_cleared_after_scope() {
+        let make = |thread: &str| Arc::new(Generation { thread: thread.into(), turn: "turn".into(), id: thread.into(),
+            start: Instant::now(), epoch: 1000.0, compaction: false });
+        let a = make("a"); let b = make("b");
+        let (left, right) = tokio::join!(
+            GENERATION.scope(a, async { tokio::task::yield_now().await; current_generation().unwrap().thread.clone() }),
+            GENERATION.scope(b, async { tokio::task::yield_now().await; current_generation().unwrap().thread.clone() })
+        );
+        assert_eq!(left, "a"); assert_eq!(right, "b"); assert!(current_generation().is_none());
+    }
+
 }

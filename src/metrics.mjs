@@ -29,12 +29,12 @@ export class SpeedMetrics {
   key(hostId, threadId, turnId) { return JSON.stringify([hostId, threadId, turnId]) }
 
   captureFirst(turn) {
-    const ms = turn.firstStreamMs ?? turn.nativeTTFT
+    const ms = turn.firstStreamMs
     if (ms === null) return
     const session = this.session(turn.hostId, turn.threadId)
     // Older records may fill missing observations, never replace a newer retained turn.
     if (this.lastTurns.get(`${turn.hostId}:${turn.threadId}`) === turn.turnId || session.lastFirst?.turnId === turn.turnId) {
-      session.lastFirst = { turnId: turn.turnId, ms, source: turn.firstStreamMs !== null ? 'stream-event' : 'native' }
+      session.lastFirst = { turnId: turn.turnId, ms, source: 'stream-event' }
     }
   }
 
@@ -229,7 +229,12 @@ export class SpeedMetrics {
     if (value.nativeStream !== undefined) session.nativeStream = value.nativeStream
     const stream = value.nativeStream
     if (stream?.source === 'native-observer' && stream.threadId === value.threadId && stream.turnId === value.turnId) {
-      if (stream.firstStreamMs != null) session.nativeFirstSnapshot = { ms: stream.firstStreamMs, at: stream.startedAt + stream.durationMs }
+      if (!stream.limited && stream.firstFlowBasis === 'generation-trigger' && stream.generationId
+        && validMs(stream.firstStreamMs) !== null && validMs(stream.firstEventAt) !== null && validMs(stream.generationStartedAt) !== null
+        && Math.abs(stream.firstEventAt - stream.generationStartedAt - stream.firstStreamMs) <= 5
+        && (session.nativeFirstSnapshot?.at ?? 0) <= stream.firstEventAt) {
+        session.nativeFirstSnapshot = { ms: stream.firstStreamMs, at: stream.firstEventAt, generationId: stream.generationId, basis: stream.firstFlowBasis }
+      }
       if (stream.toolTPS != null) session.nativeSpeedSnapshot = { ...stream }
       if (stream.kind === 'compaction' && stream.totalAverageTPS != null) session.nativeSpeedSnapshot = { ...stream }
     }
@@ -247,8 +252,7 @@ export class SpeedMetrics {
         observed.outputTokens = compact.outputTokens; observed.responseId = compact.responseId
       } else if (observed.startedAt === null && compact.completedAt > (observed.completedAt ?? 0)) session.compaction = { ...compact, status: 'completed', elapsedMs: null, startedAt: null }
     }
-    const previous = value.previousFirstToken
-    if (!session.lastFirst && previous?.turnId && validMs(previous.ms) !== null) session.lastFirst = { turnId: previous.turnId, ms: previous.ms, source: 'native' }
+    // Historical TTFT ends on effective content, so it cannot fill the first-flow field.
     const response = value.previousResponse
     const latestTurnId = this.lastTurns.get(`${value.hostId ?? 'local'}:${value.threadId}`)
     if (response?.turnId && (!session.lastResponse || session.lastResponse.turnId === response.turnId || latestTurnId === response.turnId)) {

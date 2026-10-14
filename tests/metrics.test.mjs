@@ -46,13 +46,13 @@ describe('TTFT and visible output speed', () => {
     expect(f.snapshot(1400, 'other').firstTokenMs).toBeNull()
     expect(f.snapshot(1400, 't', 'remote').firstTokenMs).toBeNull()
   })
-  it('restores the latest recorded native latency on attachment without replacing new live measurements', () => {
+  it('does not mix historical effective-content TTFT into the first-flow field', () => {
     const f = fixture()
     const previousFirstToken = { turnId: 'old', ms: 42 }
     f.metrics.applyNative({ threadId: 't', previousFirstToken })
-    expect(f.snapshot()).toMatchObject({ firstTokenMs: 42, firstTokenSource: 'native', firstHeld: true })
+    expect(f.snapshot()).toMatchObject({ firstTokenMs: null, firstTokenSource: null, firstHeld: false })
     f.emit('turn/started', { turn: { id: 'u' } }, 1000)
-    expect(f.snapshot().firstTokenMs).toBe(42)
+    expect(f.snapshot().firstTokenMs).toBeNull()
     f.emit('item/agentMessage/delta', { itemId: 'i', delta: 'abc' }, 1100)
     f.metrics.applyNative({ threadId: 't', turnId: 'u', previousFirstToken })
     expect(f.snapshot()).toMatchObject({ firstTokenMs: 100, firstTokenSource: 'stream-event' })

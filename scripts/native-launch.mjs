@@ -19,8 +19,11 @@ export async function nativeEnvironment({ directory = runtimeDir, environment = 
     if (manifest.enabled !== true || manifest.schema !== 1 || manifest.revision !== '740e5af33c71225640e0c1c1555c514c2c93ab74'
       || !path.isAbsolute(manifest.binary) || !path.isAbsolute(manifest.originalBinary) || manifest.validated !== true) return env
     // An App update or changed binary automatically falls back to the packaged client.
-    if (env.CODEX_CLI_PATH?.trim() && env.CODEX_CLI_PATH !== manifest.binary && env.CODEX_CLI_PATH !== manifest.originalBinary) return env
-    if (env.CODEX_CLI_PATH === manifest.binary) {
+    const previousOwned = env.CODEX_CLI_PATH === manifest.previousBinary && path.isAbsolute(manifest.previousBinary ?? '')
+      && path.dirname(manifest.previousBinary) === path.dirname(manifest.binary)
+      && await hash(manifest.previousBinary) === manifest.previousSha256
+    if (!previousOwned && env.CODEX_CLI_PATH?.trim() && env.CODEX_CLI_PATH !== manifest.binary && env.CODEX_CLI_PATH !== manifest.originalBinary) return env
+    if (env.CODEX_CLI_PATH === manifest.binary || previousOwned) {
       delete env.CODEX_CLI_PATH
       delete env.CODEX_SPEED_HUD_NATIVE_DIR
     }

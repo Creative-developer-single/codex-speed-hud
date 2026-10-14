@@ -68,7 +68,7 @@ export class NativeStreamMetrics {
       const streamMs = tools.reduce((sum, t) => sum + t.streamMs, 0)
       const durationMs = r.startedAt === null ? null : (r.completedAt ?? at) - r.startedAt
       return { id: r.id, responseId: r.responseId, threadId: r.threadId, turnId: r.turnId, kind: r.kind, model: r.model,
-        startedAt: r.startedAt, completedAt: r.completedAt, status: r.status, firstStreamMs: r.firstStreamMs, 
+        startedAt: r.startedAt, completedAt: r.completedAt, status: r.status, firstStreamMs: null, requestFirstStreamMs: r.firstStreamMs, firstFlowBasis: 'unknown',
         toolTPS: newest?.lastTPS ?? null, toolLastAt: newest?.lastAt ?? null, toolHeld: r.completedAt !== null || !newest || at - newest.lastAt >= 1500,
         toolTokens: tools.reduce((sum, t) => sum + t.tokens, 0), toolStreamMs: streamMs,
         toolAverageTPS: streamMs >= 250 && !tools.some(t => t.limited) ? tokens * 1000 / streamMs : null,
