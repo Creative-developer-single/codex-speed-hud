@@ -6,9 +6,9 @@ import { compactTokens, formatCumulative, costDescription } from './usage.mjs'
 import { readComposer, effortLabel } from './composer.mjs'
 import { gaugeMaximum, gaugeRatio } from './gauge.mjs'
 import { panelMarkup, toolbarIcon } from './panel.mjs'
-import { readActiveContext } from './context.mjs'
+import { createContextTracker } from './context.mjs'
 
-const VERSION = '0.4.6'
+const VERSION = '0.4.7'
 const KEY = '__codexSpeedHUD'
 
 export function installHUD(window, countTokens) {
@@ -68,13 +68,12 @@ export function installHUD(window, countTokens) {
   else document.documentElement?.append(root)
   if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) clampPosition(saved.left, saved.top)
 
-  function activeContext() {
-    return readActiveContext(window, threadId => {
+  const contextTracker = createContextTracker(window, threadId => {
       const hosts = [...metrics.turns.values()].filter(turn => turn.threadId === threadId).map(turn => turn.hostId)
       for (const key of metrics.models.keys()) if (key.endsWith(`:${threadId}`)) hosts.push(key.slice(0, -threadId.length - 1))
       return hosts
-    })
-  }
+  })
+  const activeContext = () => contextTracker.read()
 
   const ms = value => value === null || value === undefined ? '—' : `${(value / 1000).toFixed(2)} s`
   function render() {
@@ -201,7 +200,7 @@ export function installHUD(window, countTokens) {
     inspect(threadId, hostId) { return metrics.snapshot(threadId, hostId) },
     applyNative(value) { metrics.applyNative(value); render() },
     show() { setClosed(false) },
-    destroy() { stopped = true; window.clearInterval(timer); window.removeEventListener('message', onMessage); window.removeEventListener('resize', onResize); root.remove(); launcher.remove(); delete window[KEY] },
+    destroy() { stopped = true; contextTracker.destroy(); window.clearInterval(timer); window.removeEventListener('message', onMessage); window.removeEventListener('resize', onResize); root.remove(); launcher.remove(); delete window[KEY] },
   }
   render()
   return window[KEY]

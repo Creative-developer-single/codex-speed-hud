@@ -108,3 +108,7 @@ Original HUD/observer code: [MIT](../LICENSE). Modified snippets from the offici
 ### First-flow semantics (0.4.6)
 
 The optional native observer measures from Codex's generation task trigger through the first decoded response event (including `response.created`), covering local preparation and connection waiting. Each tool continuation and compaction gets its own trigger; retries share their generation trigger and earliest first event. Historical effective-content TTFT and old request-only latency cannot fill this field. Rebuild the optional client and launch the App normally to activate new native hooks; the HUD itself hot-updates. Without core hooks, renderer notifications only cover an observed turn start, and missing continuation triggers are not inferred. Rate and per-turn average timing are unchanged.
+
+### Main chat and right-hand temporary chat (0.4.7)
+
+With both chats visible, the HUD defaults to the right-hand temporary chat. Pointer and focus interaction selects a panel and survives focus moving to the HUD toolbar. Closing the side chat returns to the main chat. Formal DOM identity is required for a new side chat; hidden cached panels and background notifications never choose the measured chat. This renderer compatibility update hot-loads without restarting the App or changing native/model transport code.
